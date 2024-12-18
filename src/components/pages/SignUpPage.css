@@ -1,0 +1,16 @@
+.signup-page {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #ffffff, #e0f7fa);
+    min-height: 100vh;
+  }
+  
+  .signup-page .header {
+    margin-bottom: 20px;
+  }
+  
+  .signup-page .logo {
+    width: 100px;
+    margin-bottom: 10px;
+  }
+  
