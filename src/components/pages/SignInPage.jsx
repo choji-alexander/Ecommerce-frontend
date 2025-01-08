@@ -8,7 +8,7 @@ const SignInPage = () => {
       <div className="header">
         <img src="/logo.png" alt="Logo" className="logo" />
         <h1>Welcome Back!</h1>
-        <p>Sign in to access your account</p>
+        <p>Access your account to enjoy the best shopping experience.</p>
       </div>
       <SignInForm />
     </div>

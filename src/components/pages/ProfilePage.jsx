@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ProfilePage.css';
 
-const ProfilePage = ({ isOwner = false, userId=1 }) => {
+const ProfilePage = ({ isOwner = false, userId }) => {
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {

@@ -1,16 +1,15 @@
 .signin-page {
-    text-align: center;
-    padding: 30px;
-    background: linear-gradient(135deg, #ffffff, #e0f7fa);
-    min-height: 100vh;
-  }
-  
-  .signin-page .header {
-    margin-bottom: 20px;
-  }
-  
-  .signin-page .logo {
-    width: 100px;
-    margin-bottom: 10px;
-  }
-  
+  text-align: center;
+  padding: 50px;
+  background: linear-gradient(135deg, #ffffff, #f0f8ff);
+  min-height: 100vh;
+}
+
+.signin-page .header {
+  margin-bottom: 30px;
+}
+
+.signin-page .logo {
+  width: 120px;
+  margin-bottom: 15px;
+}

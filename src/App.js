@@ -5,6 +5,7 @@ import SignInPage from './components/pages/SignInPage';
 import ForgotPasswordPage from './components/pages/ForgotPasswordPage';
 import UserProfile from './components/forms/UserProfile';
 import ProfilePage from './components/pages/ProfilePage';
+import CheckEmailPage from './components/pages/checkEmailPage'; // Adjust the path based on your folder structure
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/profile/:userId" element={<ProfilePage />} />
+        <Route path="/check-email" element={<CheckEmailPage />} />
         <Route path="/my-profile" element={<ProfilePage isOwner={true} userId="current" />} />
       </Routes>
     </Router>
