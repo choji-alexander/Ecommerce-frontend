@@ -1,10 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FaMicrosoft } from 'react-icons/fa'; // Bing icon
+import Flag from 'react-world-flags';
 import './SignUpForm.css';
+import Select from 'react-select';
+import TwitterLogin from 'react-twitter-login';  // Import Twitter OAuth login button
+import { GoogleLogin } from '@react-oauth/google';  // Import Google OAuth login button
+import { useMsal } from '@azure/msal-react';
+import { loginRequest } from './authConfig';  // Your MSAL config
+
+
+const countries = [
+  { code: 'US', name: 'United States' },
+  { code: 'EG', name: 'Egypt' },
+  { code: 'JM', name: 'Jamaica' },
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'MO', name: 'Morocco' },
+  // Add more countries as needed.
+];
+
+const CountryDropdown = ({ formData, handleChange2 }) => {
+  const options = countries.map((country) => ({
+    value: country.code,
+    label: (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Flag code={country.code} style={{ width: 24, height: 16, marginRight: 8 }} />
+        {country.name} ({country.code})
+      </div>
+    ),
+  }));
+
+  return (
+    <Select
+      name="country"
+      value={options.find(option => option.value === formData.country)}
+      onChange={(selectedOption) => handleChange2({ target: { name: 'country', value: selectedOption.value } })}
+      options={options}
+      required
+    />
+  );
+};
 
 const SignUpForm = () => {
   const navigate = useNavigate();
+  const { instance } = useMsal();  // Move useMsal hook here
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -17,13 +57,77 @@ const SignUpForm = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const countries = [
-    { code: 'US', name: 'United States' },
-    { code: 'EG', name: 'Egypt' },
-    { code: 'JA', name: 'Jamaica' },
-    { code: 'NG', name: 'Nigeria' },
-    // Add more countries as needed.
-  ];
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrengthMessage, setPasswordStrengthMessage] = useState('');
+
+  const checkPasswordStrength = (password) => {
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Include at least one uppercase letter';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'Include at least one lowercase letter';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Include at least one number';
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      return 'Include at least one special character';
+    }
+    return 'Password is strong';
+  };
+
+  const handleGoogleSignUp = async (response) => {
+    try {
+      const payload = { token: response.credential };
+
+      // Send the token to your backend for sign-up
+      await axios.post('http://localhost:8000/api/auth/Google_signup/', payload);
+      setSuccess('Google sign-up successful!');
+      setError(null);
+
+      setTimeout(() => navigate('/check-email'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred');
+    }
+  };
+
+  const handleTwitterLogin = async (response) => {
+    try {
+      const payload = { token: response.oauth_token, tokenSecret: response.oauth_token_secret };
+  
+      // Send the token to your backend for sign-in or sign-up
+      await axios.post('http://localhost:8000/api/auth/Twitter_signup/', payload);
+      setSuccess('Twitter sign-up successful!');
+      setError(null);
+  
+      setTimeout(() => navigate('/check-email'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred');
+    }
+  };
+
+  const handleMicrosoftSignUp = async () => {
+    try {
+      const response = await instance.loginPopup(loginRequest);
+      const payload = { token: response.accessToken };
+      await axios.post('http://localhost:8000/api/auth/Microsoft_signup/', payload);
+      setSuccess('Microsoft sign-up successful!');
+      setError(null);
+      setTimeout(() => navigate('/check-email'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred');
+    }
+  };
+  
+
+  // Update password strength message dynamically
+  useEffect(() => {
+    setPasswordStrengthMessage(checkPasswordStrength(formData.password));
+  }, [formData.password]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -84,25 +188,27 @@ const SignUpForm = () => {
         <div className="form-header">
           <h2>Sign Up</h2>
         </div>
-        <div className="form-group">
-          <label>First Name</label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Last Name</label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label>First Name</label>
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Last Name</label>
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+          </div>
         </div>
         <div className="form-group">
           <label>Email</label>
@@ -116,34 +222,48 @@ const SignUpForm = () => {
         </div>
         <div className="form-group">
           <label>Country</label>
-          <select name="country" value={formData.country} onChange={handleChange} required>
-            <option value="">Select your country</option>
-            {countries.map((country) => (
-              <option key={country.code} value={country.code}>
-                {country.name} ({country.code})
-              </option>
-            ))}
-          </select>
+          <CountryDropdown formData={formData} handleChange2={handleChange} />
         </div>
         <div className="form-group">
           <label>Password</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div className="password-field">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <div className="password-strength">
+            <p>{passwordStrengthMessage}</p>
+          </div>
         </div>
         <div className="form-group">
           <label>Re-enter Password</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
+          <div className="password-field">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
         </div>
         <div className="form-group terms">
           <input
@@ -157,11 +277,19 @@ const SignUpForm = () => {
         </div>
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
-        <button type="submit" className="submit-button">Sign Up</button>
+        <button type="submit" className="submit-button">Submit</button>
         <div className="oauth-buttons">
-          <button type="button" className="oauth-button google">Sign Up with Google</button>
-          <button type="button" className="oauth-button x">Sign Up with X</button>
-          <button type="button" className="oauth-button bing">Sign Up with Bing</button>
+        <GoogleLogin 
+            onSuccess={handleGoogleSignUp} 
+            onError={() => console.log('Google Sign Up failed')} 
+          />
+          <TwitterLogin
+  authCallback={handleTwitterLogin}
+  consumerKey="your-consumer-key" // Set your consumer key
+  consumerSecret="your-consumer-secret" // Set your consumer secret
+  buttonText="Login with Twitter"
+/>
+<button type="button" className="oauth-button bing" onClick={handleMicrosoftSignUp}><FaMicrosoft size={24} /></button>
         </div>
       </form>
     </div>

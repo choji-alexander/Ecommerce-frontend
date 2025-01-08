@@ -11,6 +11,11 @@ const SignInPage = () => {
         <p>Access your account to enjoy the best shopping experience.</p>
       </div>
       <SignInForm />
+      <div className="footer">
+        <p>
+          Don't have an account? <a href="/Signup">Sign up here</a>.
+        </p>
+      </div>
     </div>
   );
 };

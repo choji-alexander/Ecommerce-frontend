@@ -13,3 +13,20 @@
   width: 120px;
   margin-bottom: 15px;
 }
+
+.signin-page .footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.signin-page .footer a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.signin-page .footer a:hover {
+  text-decoration: underline;
+}
+
